@@ -109,15 +109,13 @@ export async function sendMessage(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Non authentifié" };
 
-  const { error } = await supabase.from("messages_history").insert(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    {
-      booking_id: parsed.data.booking_id,
-      content: parsed.data.content,
-      sender: "admin",
-    } as unknown,
-  );
-
+ // @ts-ignore
+  const { error } = await supabase.from("messages_history").insert({
+    booking_id: parsed.data.booking_id,
+    content: parsed.data.content,
+    sender: "admin",
+  });
+  
   if (error) return { ok: false, error: error.message };
 
   // ── Email de notification au client ──
