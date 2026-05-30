@@ -115,7 +115,7 @@ export async function sendMessage(
     content: parsed.data.content,
     sender: "admin",
   });
-  
+
   if (error) return { ok: false, error: error.message };
 
   // ── Email de notification au client ──
