@@ -114,7 +114,7 @@ export async function sendMessage(
       booking_id: parsed.data.booking_id,
       content: parsed.data.content,
       sender: "admin",
-    } as any,
+    } as unknown,
   );
 
   if (error) return { ok: false, error: error.message };

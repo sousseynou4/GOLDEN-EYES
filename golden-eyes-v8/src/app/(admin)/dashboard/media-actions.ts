@@ -40,7 +40,7 @@ export async function createUploadedMedia(input: {
       provider: "upload",
       title: input.title || null,
       category: input.category || null,
-    } as any,
+    } as unknown,
   );
 
   if (error) return { ok: false, error: error.message };
@@ -71,7 +71,7 @@ export async function createExternalVideo(input: {
       embed_id: input.embedId,
       title: input.title || null,
       category: input.category || null,
-    } as any,
+    } as unknown,
   );
 
   if (error) return { ok: false, error: error.message };
