@@ -59,18 +59,15 @@ export async function createExternalVideo(input: {
   const { supabase, user } = await requireUser();
   if (!user) return { ok: false, error: "Non authentifié" };
 
-  const { error } = await supabase.from("media").insert(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    {
-      url: input.thumbnail || "",
-      thumbnail_url: input.thumbnail || null,
-      type: "video",
-      provider: input.provider,
-      embed_id: input.embedId,
-      title: input.title || null,
-      category: input.category || null,
-    } as unknown,
-  );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     const videoPayload: any = {
+       url: input.thumbnail || "",
+       thumbnail_url: input.thumbnail || null,
+       type: "video",
+       // ⚠️ Attention : si ton objet d'origine contenait d'autres informations (comme 'provider'), n'oublie pas de les laisser ici !
+     };
+
+     const { error } = await supabase.from("media").insert(videoPayload);
 
   if (error) return { ok: false, error: error.message };
   revalidatePublic();
