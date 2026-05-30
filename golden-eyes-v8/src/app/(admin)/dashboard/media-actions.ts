@@ -32,16 +32,14 @@ export async function createUploadedMedia(input: {
   const { supabase, user } = await requireUser();
   if (!user) return { ok: false, error: "Non authentifié" };
 
-  const { error } = await supabase.from("media").insert(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    {
-      url: input.url,
-      type: input.type,
-      provider: "upload",
-      title: input.title || null,
-      category: input.category || null,
-    } as unknown,
-  );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mediaPayload: any = {
+    url: input.url,
+    type: input.type,
+    provider: "upload",
+  };
+
+  const { error } = await supabase.from("media").insert(mediaPayload);
 
   if (error) return { ok: false, error: error.message };
   revalidatePublic();
