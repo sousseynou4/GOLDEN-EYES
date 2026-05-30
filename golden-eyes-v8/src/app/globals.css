@@ -1,0 +1,109 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ══════════════════════════════════════════════════════════════
+   Golden Eyes — Système éditorial clair
+   ══════════════════════════════════════════════════════════════ */
+
+@layer base {
+  html {
+    @apply scroll-smooth antialiased;
+  }
+  body {
+    @apply bg-paper font-sans text-ink;
+    @apply selection:bg-gold-200 selection:text-espresso;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 {
+    @apply font-serif text-espresso;
+  }
+
+  /* Scrollbar discrète, ton crème */
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { @apply bg-paper-warm; }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gold-300 rounded-full border-2 border-paper-warm;
+  }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-gold-400; }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Composants
+   ────────────────────────────────────────────────────────────── */
+@layer components {
+
+  /* ── Boutons ── */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full
+           bg-espresso px-7 py-3.5 text-sm font-medium uppercase tracking-wider text-paper
+           transition-all duration-300
+           hover:bg-gold-500 hover:text-espresso
+           active:scale-[0.98];
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full
+           border border-ink/30 px-7 py-3.5 text-sm font-medium uppercase tracking-wider text-ink
+           transition-all duration-300
+           hover:border-espresso hover:bg-espresso hover:text-paper;
+  }
+  /* Variante des boutons sur fond sombre */
+  .btn-primary-dark {
+    @apply inline-flex items-center justify-center gap-2 rounded-full
+           bg-gold-500 px-7 py-3.5 text-sm font-medium uppercase tracking-wider text-espresso
+           transition-all duration-300
+           hover:bg-paper hover:text-espresso
+           active:scale-[0.98];
+  }
+  .btn-ghost-dark {
+    @apply inline-flex items-center justify-center gap-2 rounded-full
+           border border-paper/40 px-7 py-3.5 text-sm font-medium uppercase tracking-wider text-paper
+           transition-all duration-300
+           hover:border-paper hover:bg-paper hover:text-espresso;
+  }
+
+  /* ── Champs de formulaire ── */
+  .field {
+    @apply w-full rounded-lg border border-line bg-paper-pure
+           px-4 py-3 text-ink placeholder:text-ink-faint/60
+           transition-colors
+           focus:border-gold-500 focus:outline-none focus:ring-1 focus:ring-gold-500;
+  }
+  .field-error {
+    @apply border-red-400 focus:border-red-500 focus:ring-red-500;
+  }
+  .label {
+    @apply mb-1.5 block text-xs font-medium uppercase tracking-wider text-ink-muted;
+  }
+
+  /* ── Eyebrow (sur-titre tagline) ── */
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-xs font-medium uppercase tracking-editorial text-gold-600;
+  }
+  .eyebrow::before {
+    content: "";
+    @apply h-px w-8 bg-gold-500;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Utilitaires custom
+   ────────────────────────────────────────────────────────────── */
+@layer utilities {
+  /* Grain cinéma léger en overlay */
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("/images/noise.png");
+    opacity: 0.04;
+    mix-blend-mode: multiply;
+    pointer-events: none;
+    z-index: 1;
+  }
+  /* Filet décoratif vertical */
+  .text-balance {
+    text-wrap: balance;
+  }
+}
