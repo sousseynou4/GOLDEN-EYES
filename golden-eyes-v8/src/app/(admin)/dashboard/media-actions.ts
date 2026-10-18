@@ -122,6 +122,10 @@ export async function deleteMedia(
 
   const { error } = await supabase.from("media").delete().eq("id", id);
   if (error) return { ok: false, error: error.message };
+
+  // Si la photo servait d'image d'accueil, on revient à l'image par défaut
+  await supabase.from("site_settings").delete().eq("value", url);
+
   revalidatePublic();
   return { ok: true };
 }

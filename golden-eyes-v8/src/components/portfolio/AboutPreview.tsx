@@ -18,7 +18,7 @@ const STATS = [
  * texte éditorial + chiffres à droite. Mise en page asymétrique
  * inspirée d'une double-page de magazine.
  */
-export function AboutPreview() {
+export function AboutPreview({ image = DEMO_PORTRAIT }: { image?: string }) {
   return (
     <section className="bg-paper-warm py-24 md:py-32">
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 md:grid-cols-2 md:gap-20">
@@ -32,7 +32,7 @@ export function AboutPreview() {
         >
           <div className="relative aspect-[4/5] overflow-hidden rounded-2xl">
             <Image
-              src={DEMO_PORTRAIT}
+              src={image}
               alt="Le photographe au travail"
               fill
               sizes="(max-width: 768px) 100vw, 50vw"

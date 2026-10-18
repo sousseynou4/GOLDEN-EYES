@@ -9,6 +9,7 @@ import { SectionTitle } from "@/components/ui/SectionTitle";
 import { createClient } from "@/lib/supabase/server";
 import { ROUTES } from "@/lib/constants";
 import { DEMO_GALLERY } from "@/lib/demo-content";
+import { getHomeImages } from "@/lib/site-settings";
 import type { Media } from "@/types";
 
 export const revalidate = 60;
@@ -23,17 +24,25 @@ export const revalidate = 60;
  *
  * Les médias viennent de Supabase ; si la table est vide, on
  * retombe sur les images de démonstration pour que le site vive.
+ * Les photos mises en avant (★) passent en premier, complétées
+ * par les plus récentes. Le hero et le portrait se règlent dans
+ * Dashboard → Page d'accueil (table `site_settings`).
  */
 export default async function HomePage() {
   const supabase = await createClient();
 
-  const { data: dbMedia } = await supabase
-    .from("media")
-    .select("id, url, title, category, type")
-    .eq("type", "image")
-    .order("display_order", { ascending: true })
-    .limit(9)
-    .returns<Pick<Media, "id" | "url" | "title" | "category" | "type">[]>();
+  const [{ data: dbMedia }, homeImages] = await Promise.all([
+    supabase
+      .from("media")
+      .select("id, url, title, category, type")
+      .eq("type", "image")
+      .order("is_featured", { ascending: false })
+      .order("display_order", { ascending: true })
+      .order("created_at", { ascending: false })
+      .limit(9)
+      .returns<Pick<Media, "id" | "url" | "title" | "category" | "type">[]>(),
+    getHomeImages(supabase),
+  ]);
 
   // Fallback démo si la base est vide
   const gallery =
@@ -56,9 +65,9 @@ export default async function HomePage() {
 
   return (
     <>
-      <Hero />
+      <Hero image={homeImages.home_hero_image} />
 
-      <AboutPreview />
+      <AboutPreview image={homeImages.home_about_image} />
 
       {/* Aperçu portfolio — fond clair */}
       <section className="bg-paper py-24 md:py-32">

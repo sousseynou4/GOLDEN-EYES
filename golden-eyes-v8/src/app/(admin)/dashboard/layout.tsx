@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Inbox, MessageSquare, Images } from "lucide-react";
+import { LayoutDashboard, Inbox, MessageSquare, Images, House, KeyRound } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ROUTES } from "@/lib/constants";
 import { LogoutButton } from "@/components/admin/LogoutButton";
@@ -22,6 +22,7 @@ export default async function DashboardLayout({
     { href: ROUTES.bookings, label: "Réservations", icon: Inbox },
     { href: ROUTES.messages, label: "Messages", icon: MessageSquare },
     { href: ROUTES.media, label: "Médias", icon: Images },
+    { href: ROUTES.homeSettings, label: "Page d'accueil", icon: House },
   ];
 
   return (
@@ -36,6 +37,14 @@ export default async function DashboardLayout({
           </Link>
           <div className="flex items-center gap-4">
             <span className="hidden text-sm text-ink-muted md:block">{user.email}</span>
+            <Link
+              href={ROUTES.resetPassword}
+              className="inline-flex items-center gap-2 rounded-full border border-line px-4 py-2 text-xs uppercase tracking-wider text-ink-muted transition hover:border-espresso hover:text-espresso"
+              aria-label="Changer le mot de passe"
+            >
+              <KeyRound className="h-4 w-4" />
+              <span className="hidden sm:inline">Mot de passe</span>
+            </Link>
             <LogoutButton />
           </div>
         </div>

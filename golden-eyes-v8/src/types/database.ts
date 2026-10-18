@@ -180,6 +180,23 @@ export type Database = {
         };
         Relationships: [];
       };
+      site_settings: {
+        Row: {
+          key: string;
+          value: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          key: string;
+          value?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          value?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -213,3 +230,4 @@ export type Booking = Tables<"bookings">;
 export type Message = Tables<"messages_history">;
 export type Media = Tables<"media">;
 export type Profile = Tables<"profiles">;
+export type SiteSetting = Tables<"site_settings">;

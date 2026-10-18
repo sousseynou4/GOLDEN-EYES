@@ -11,6 +11,31 @@ export const loginSchema = z.object({
 export type LoginInput = z.infer<typeof loginSchema>;
 
 /**
+ * Demande de réinitialisation du mot de passe.
+ */
+export const forgotPasswordSchema = loginSchema.pick({ email: true });
+
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+
+/**
+ * Choix d'un nouveau mot de passe.
+ */
+export const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(10, "Le mot de passe doit contenir au moins 10 caractères")
+      .max(72, "Mot de passe trop long (72 caractères max)"),
+    confirm: z.string(),
+  })
+  .refine((v) => v.password === v.confirm, {
+    message: "Les deux mots de passe ne correspondent pas",
+    path: ["confirm"],
+  });
+
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+
+/**
  * Schéma d'un message envoyé depuis le dashboard vers un client.
  */
 export const messageSchema = z.object({

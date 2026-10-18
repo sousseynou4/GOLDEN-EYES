@@ -55,4 +55,7 @@ export const ROUTES = {
   bookings: "/dashboard/bookings",
   messages: "/dashboard/messages",
   media: "/dashboard/media",
+  homeSettings: "/dashboard/accueil",
+  forgotPassword: "/mot-de-passe-oublie",
+  resetPassword: "/nouveau-mot-de-passe",
 } as const;
