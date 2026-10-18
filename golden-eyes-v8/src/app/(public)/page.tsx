@@ -6,6 +6,7 @@ import { AboutPreview } from "@/components/portfolio/AboutPreview";
 import { PortfolioGrid } from "@/components/portfolio/PortfolioGrid";
 import { Marquee } from "@/components/portfolio/Marquee";
 import { FinalCta } from "@/components/portfolio/FinalCta";
+import { AlbumFolders, type AlbumMedia } from "@/components/portfolio/AlbumFolders";
 import { Container } from "@/components/ui/Container";
 import { createClient } from "@/lib/supabase/server";
 import { ROUTES } from "@/lib/constants";
@@ -20,9 +21,10 @@ export const revalidate = 60;
  *   1. Hero photo plein écran + poussière d'or 3D (Three.js)
  *   2. Le studio : phrase signature + texte de présentation + prestations
  *   3. L'approche : photo en rideau + engagements
- *   4. Aperçu portfolio (mosaïque) — fond clair
- *   5. Bandeau défilant — fond noir
- *   6. Appel final à la réservation
+ *   4. Albums : un classeur en verre par album (photos + vidéos)
+ *   5. Aperçu portfolio (mosaïque) — fond clair
+ *   6. Bandeau défilant — fond noir
+ *   7. Appel final à la réservation
  *
  * Les médias viennent de Supabase ; si la table est vide, on
  * retombe sur les images de démonstration pour que le site vive.
@@ -33,7 +35,7 @@ export const revalidate = 60;
 export default async function HomePage() {
   const supabase = await createClient();
 
-  const [{ data: dbMedia }, content] = await Promise.all([
+  const [{ data: dbMedia }, { data: albumMedia }, content] = await Promise.all([
     supabase
       .from("media")
       .select("id, url, title, category, type")
@@ -43,8 +45,27 @@ export default async function HomePage() {
       .order("created_at", { ascending: false })
       .limit(9)
       .returns<Pick<Media, "id" | "url" | "title" | "category" | "type">[]>(),
+    // Photos et vidéos de tous les albums, les plus récentes d'abord
+    supabase
+      .from("media")
+      .select("id, url, thumbnail_url, type, provider, embed_id, title, category")
+      .order("created_at", { ascending: false })
+      .limit(300)
+      .returns<AlbumMedia[]>(),
     getHomeContent(supabase),
   ]);
+
+  const albums: AlbumMedia[] =
+    albumMedia && albumMedia.length > 0
+      ? albumMedia
+      : DEMO_GALLERY.map((d) => ({
+          id: d.id,
+          url: d.url,
+          type: "image" as const,
+          provider: "upload" as const,
+          title: d.title,
+          category: d.category,
+        }));
 
   // Fallback démo si la base est vide
   const gallery =
@@ -72,6 +93,8 @@ export default async function HomePage() {
       <StudioIntro description={content.texts.home_description} />
 
       <AboutPreview image={content.images.home_about_image} />
+
+      <AlbumFolders media={albums} />
 
       {/* Aperçu portfolio — fond clair */}
       <section className="bg-paper py-24 md:py-32">

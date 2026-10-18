@@ -162,6 +162,28 @@
   }
 }
 
+/* Classeurs d'albums (glass-folder-cards) aux couleurs de la maison */
+.ge-folders .gf-title {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 22px;
+  font-weight: 400;
+  color: #f4e8cc;
+}
+.ge-folders .gf-meta {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(221, 184, 102, 0.85);
+}
+.ge-folders .gf-sheet-name,
+.ge-folders .gf-sheet-meta {
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+.ge-folders .gf-sheet:focus-visible {
+  outline-color: #ddb866;
+}
+
 /* Accessibilité : pas d'animation décorative si l'utilisateur l'a demandé */
 @media (prefers-reduced-motion: reduce) {
   .text-gold,

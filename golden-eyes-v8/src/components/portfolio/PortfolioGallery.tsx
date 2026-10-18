@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, Play } from "lucide-react";
@@ -41,6 +41,12 @@ export function PortfolioGallery({ items }: PortfolioGalleryProps) {
     });
     return ["Tous", ...Array.from(set)];
   }, [items]);
+
+  // Ouvre directement l'album demandé (lien depuis les classeurs de l'accueil)
+  useEffect(() => {
+    const album = new URLSearchParams(window.location.search).get("album");
+    if (album && categories.includes(album)) setActiveCategory(album);
+  }, [categories]);
 
   const filtered = useMemo(() => {
     if (activeCategory === "Tous") return items;
