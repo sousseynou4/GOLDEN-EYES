@@ -15,7 +15,7 @@ export const HOME_IMAGE_SLOTS = [
     key: "home_hero_image",
     label: "Photo du haut de page",
     description:
-      "La grande photo plein écran, derrière le titre « Capturer la lumière, révéler l'instant ». Format paysage conseillé (au moins 1920 px de large).",
+      "La grande photo plein écran, derrière le titre « Capturer la lumière, révéler l'instant ». Elle se reconstitue en particules à l'ouverture de la page et devient liquide au passage de la souris ; ses zones sombres se fondent dans le fond noir. Format paysage conseillé (au moins 1920 px de large).",
     fallback: DEMO_HERO,
     aspect: "aspect-video",
     /** Position sur la page, pour le mini-plan affiché dans le dashboard */
