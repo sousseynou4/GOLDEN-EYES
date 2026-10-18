@@ -8,7 +8,7 @@ export const SITE_CONFIG = {
   description:
     "Photographe professionnel — portraits, mariages, événements et reportages d'auteur.",
   url: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-  email: "contact@golden-eyes.fr",
+  email: "contact@golden-eyes.eu",
   social: {
     instagram: "https://instagram.com/goldeneyes",
     facebook: "https://facebook.com/goldeneyes",

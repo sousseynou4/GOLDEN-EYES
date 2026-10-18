@@ -5,14 +5,20 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ImageUp, Images, Loader2, RotateCcw, Star, Check } from "lucide-react";
+import { ImageUp, Images, Loader2, RotateCcw, Star, Check, Save } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { setHomeImage, resetHomeImage } from "@/app/(admin)/dashboard/home-actions";
+import {
+  setHomeImage,
+  resetHomeImage,
+  setHomeText,
+} from "@/app/(admin)/dashboard/home-actions";
 import { compressImage } from "@/lib/image-compression";
 import {
   HOME_IMAGE_SLOTS,
+  HOME_TEXT_SLOTS,
   SITE_IMAGES_FOLDER,
   type HomeImageKey,
+  type HomeTextKey,
 } from "@/lib/site-settings";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -21,42 +27,60 @@ const STORAGE_BUCKET = "portfolio";
 
 type LibraryImage = { id: string; url: string; title: string | null };
 
-interface HomeImagesManagerProps {
+interface HomeContentManagerProps {
   /** URLs personnalisées déjà enregistrées (clés absentes = image par défaut) */
-  custom: Partial<Record<HomeImageKey, string>>;
+  customImages: Partial<Record<HomeImageKey, string>>;
+  /** Textes personnalisés déjà enregistrés (clés absentes = texte par défaut) */
+  customTexts: Partial<Record<HomeTextKey, string>>;
   /** Photos de la médiathèque, pour choisir une image déjà importée */
   library: LibraryImage[];
   /** Nombre de photos mises en avant (★) dans la médiathèque */
   featuredCount: number;
 }
 
-export function HomeImagesManager({ custom, library, featuredCount }: HomeImagesManagerProps) {
-  const [images, setImages] = useState(custom);
+export function HomeContentManager({
+  customImages,
+  customTexts,
+  library,
+  featuredCount,
+}: HomeContentManagerProps) {
+  const [images, setImages] = useState(customImages);
+
+  // Les blocs sont affichés dans l'ordre où ils apparaissent sur l'accueil
+  const blocks = [
+    ...HOME_IMAGE_SLOTS.map((slot) => ({ position: slot.position, node: (
+      <SlotEditor
+        key={slot.key}
+        slot={slot}
+        current={images[slot.key]}
+        library={library}
+        onChange={(url) =>
+          setImages((cur) => {
+            const next = { ...cur };
+            if (url) next[slot.key] = url;
+            else delete next[slot.key];
+            return next;
+          })
+        }
+      />
+    ) })),
+    ...HOME_TEXT_SLOTS.map((slot) => ({ position: slot.position, node: (
+      <TextEditor key={slot.key} slot={slot} current={customTexts[slot.key]} />
+    ) })),
+  ].sort((a, b) => a.position - b.position);
 
   return (
     <div className="space-y-8">
-      {HOME_IMAGE_SLOTS.map((slot) => (
-        <SlotEditor
-          key={slot.key}
-          slot={slot}
-          current={images[slot.key]}
-          library={library}
-          onChange={(url) =>
-            setImages((cur) => {
-              const next = { ...cur };
-              if (url) next[slot.key] = url;
-              else delete next[slot.key];
-              return next;
-            })
-          }
-        />
-      ))}
+      {blocks.map((b) => b.node)}
 
       {/* Galerie : pilotée par les étoiles de la médiathèque */}
       <section className="rounded-2xl border border-line bg-paper-pure p-6">
-        <h2 className="font-serif text-xl text-espresso">
-          Galerie « Travaux récents » et bandeau défilant
-        </h2>
+        <div className="flex items-start justify-between gap-4">
+          <h2 className="font-serif text-xl text-espresso">
+            Galerie « Travaux récents » et bandeau défilant
+          </h2>
+          <PageMap position={3} />
+        </div>
         <p className="mt-2 text-sm text-ink-muted">
           Ces photos viennent de la médiathèque. Cliquez sur l&apos;étoile{" "}
           <Star className="inline h-3.5 w-3.5 text-gold-600" /> d&apos;une photo
@@ -193,7 +217,10 @@ function SlotEditor({
 
         {/* Texte + actions */}
         <div>
-          <h2 className="font-serif text-xl text-espresso">{slot.label}</h2>
+          <div className="flex items-start justify-between gap-4">
+            <h2 className="font-serif text-xl text-espresso">{slot.label}</h2>
+            <PageMap position={slot.position} />
+          </div>
           <p className="mt-2 text-sm text-ink-muted">{slot.description}</p>
 
           <input
@@ -275,5 +302,121 @@ function SlotEditor({
         </div>
       )}
     </section>
+  );
+}
+
+/* ── Un texte modifiable ────────────────────────────────────────── */
+
+function TextEditor({
+  slot,
+  current,
+}: {
+  slot: (typeof HOME_TEXT_SLOTS)[number];
+  current: string | undefined;
+}) {
+  const router = useRouter();
+  const [value, setValue] = useState(current ?? slot.fallback);
+  const [saved, setSaved] = useState(current ?? slot.fallback);
+  const [isCustom, setIsCustom] = useState(Boolean(current));
+  const [isPending, startTransition] = useTransition();
+
+  const dirty = value.trim() !== saved.trim();
+  const tooLong = value.length > slot.maxLength;
+
+  function persist(text: string, successMessage: string) {
+    startTransition(async () => {
+      const res = await setHomeText(slot.key, text);
+      if (!res.ok) {
+        toast.error("Enregistrement échoué", { description: res.error });
+        return;
+      }
+      const next = text.trim() || slot.fallback;
+      setValue(next);
+      setSaved(next);
+      setIsCustom(Boolean(text.trim()));
+      toast.success(successMessage);
+      router.refresh();
+    });
+  }
+
+  return (
+    <section className="rounded-2xl border border-line bg-paper-pure p-6">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="font-serif text-xl text-espresso">{slot.label}</h2>
+          <p className="mt-2 text-sm text-ink-muted">{slot.description}</p>
+        </div>
+        <PageMap position={slot.position} />
+      </div>
+
+      <textarea
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        rows={6}
+        className={cn("field mt-5 resize-y leading-relaxed", tooLong && "field-error")}
+      />
+      <div className="mt-2 flex items-center justify-between text-xs">
+        <span className="text-ink-faint">
+          {isCustom ? "Texte personnalisé" : "Texte par défaut"}
+        </span>
+        <span className={tooLong ? "text-red-500" : "text-ink-faint"}>
+          {value.length} / {slot.maxLength}
+        </span>
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-3">
+        <button
+          onClick={() => persist(value, "Texte mis à jour")}
+          disabled={isPending || !dirty || tooLong}
+          className="btn-primary disabled:opacity-50"
+        >
+          {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          Enregistrer
+        </button>
+        {isCustom && (
+          <button
+            onClick={() => persist("", "Texte par défaut rétabli")}
+            disabled={isPending}
+            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs uppercase tracking-wider text-ink-muted transition hover:text-red-500 disabled:opacity-50"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Rétablir le texte par défaut
+          </button>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/* ── Mini-plan de l'accueil : montre où se trouve le bloc ────────── */
+
+const PAGE_MAP_BLOCKS = [
+  { label: "Haut de page", height: "h-5" },
+  { label: "Présentation", height: "h-3" },
+  { label: "L'approche", height: "h-4" },
+  { label: "Galerie", height: "h-4" },
+];
+
+function PageMap({ position }: { position: number }) {
+  return (
+    <div
+      className="flex w-20 shrink-0 flex-col gap-1 rounded-md border border-line bg-paper-warm p-1.5"
+      title={`Emplacement sur l'accueil : ${PAGE_MAP_BLOCKS[position]?.label ?? ""}`}
+      aria-label={`Emplacement sur l'accueil : ${PAGE_MAP_BLOCKS[position]?.label ?? ""}`}
+    >
+      {PAGE_MAP_BLOCKS.map((block, i) => (
+        <div
+          key={block.label}
+          className={cn(
+            "rounded-sm",
+            block.height,
+            i === position ? "bg-gold-500" : "bg-line",
+          )}
+        />
+      ))}
+      <p className="mt-0.5 text-center text-[9px] uppercase tracking-wider text-gold-700">
+        {PAGE_MAP_BLOCKS[position]?.label}
+      </p>
+    </div>
   );
 }

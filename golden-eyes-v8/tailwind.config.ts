@@ -61,6 +61,11 @@ const config: Config = {
           DEFAULT: "#E2D9C9", // bordure sur fond clair
           dark: "#3A2E24", // bordure sur fond sombre
         },
+        // ── Noir luxe (sections signature) ────────────────────
+        noir: {
+          DEFAULT: "#0C0906", // noir chaud, presque encre
+          soft: "#15100B", // sections sombres alternées
+        },
       },
       fontFamily: {
         // Polices définies dans app/layout.tsx via next/font
@@ -69,7 +74,9 @@ const config: Config = {
       },
       fontSize: {
         // Échelle éditoriale (titres généreux)
-        "display-xl": ["clamp(3.5rem, 10vw, 9rem)", { lineHeight: "0.95", letterSpacing: "-0.02em" }],
+        // display-xl tient compte de la hauteur d'écran (vh) pour que le
+        // hero ne déborde jamais sous le header sur les écrans d'ordinateur bas.
+        "display-xl": ["clamp(2.75rem, min(8.5vw, 13vh), 8.5rem)", { lineHeight: "0.95", letterSpacing: "-0.02em" }],
         "display-lg": ["clamp(2.5rem, 6vw, 5.5rem)", { lineHeight: "1", letterSpacing: "-0.02em" }],
         "display-md": ["clamp(2rem, 4vw, 3.5rem)", { lineHeight: "1.05", letterSpacing: "-0.01em" }],
       },
@@ -82,6 +89,7 @@ const config: Config = {
         "slow-zoom": "slowZoom 24s ease-in-out infinite alternate",
         marquee: "marquee 50s linear infinite",
         "reveal": "reveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        shimmer: "shimmer 6s linear infinite",
       },
       keyframes: {
         fadeIn: { from: { opacity: "0" }, to: { opacity: "1" } },
@@ -100,6 +108,14 @@ const config: Config = {
         reveal: {
           from: { opacity: "0", transform: "translateY(40px) scale(0.98)" },
           to: { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
+        shimmer: {
+          from: { backgroundPosition: "200% center" },
+          to: { backgroundPosition: "-200% center" },
+        },
+        scrollCue: {
+          "0%": { transform: "translateY(-100%)" },
+          "100%": { transform: "translateY(200%)" },
         },
       },
       backgroundImage: {

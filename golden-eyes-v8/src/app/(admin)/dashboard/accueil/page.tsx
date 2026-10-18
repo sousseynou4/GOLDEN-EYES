@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { HomeImagesManager } from "@/components/admin/HomeImagesManager";
-import { getCustomHomeImages } from "@/lib/site-settings";
+import { HomeContentManager } from "@/components/admin/HomeContentManager";
+import { getCustomHomeImages, getCustomHomeTexts } from "@/lib/site-settings";
 import type { Media } from "@/types";
 
 export const metadata = { title: "Page d'accueil" };
@@ -12,7 +12,10 @@ export default async function HomeSettingsPage() {
   // Vérifie que la migration `site_settings` a bien été exécutée
   const { error: tableError } = await supabase.from("site_settings").select("key").limit(1);
 
-  const custom = await getCustomHomeImages(supabase);
+  const [customImages, customTexts] = await Promise.all([
+    getCustomHomeImages(supabase),
+    getCustomHomeTexts(supabase),
+  ]);
 
   const { data: library } = await supabase
     .from("media")
@@ -34,8 +37,9 @@ export default async function HomeSettingsPage() {
       <header>
         <h1 className="font-serif text-3xl text-espresso">Page d&apos;accueil</h1>
         <p className="mt-1 text-sm text-ink-muted">
-          Choisissez les photos affichées sur l&apos;accueil du site. Les
-          changements sont visibles immédiatement.
+          Modifiez les photos et le texte de présentation de l&apos;accueil. Le
+          petit plan doré à droite de chaque bloc indique où il se trouve sur
+          la page. Les changements sont visibles immédiatement.
         </p>
       </header>
 
@@ -52,8 +56,9 @@ export default async function HomeSettingsPage() {
         </div>
       )}
 
-      <HomeImagesManager
-        custom={custom}
+      <HomeContentManager
+        customImages={customImages}
+        customTexts={customTexts}
         library={library ?? []}
         featuredCount={featuredCount ?? 0}
       />

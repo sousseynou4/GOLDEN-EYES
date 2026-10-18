@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import {
   HOME_IMAGE_KEYS,
+  HOME_TEXT_SLOTS,
   SITE_IMAGES_FOLDER,
   type HomeImageKey,
 } from "@/lib/site-settings";
@@ -95,6 +96,31 @@ export async function setHomeImage(key: string, url: string): Promise<ActionResu
   if (error) return { ok: false, error: error.message };
 
   await removeOldSiteImage(supabase, previous, url);
+  revalidateHome();
+  return { ok: true };
+}
+
+/**
+ * Enregistre un texte de la page d'accueil (vide = texte par défaut).
+ */
+export async function setHomeText(key: string, value: string): Promise<ActionResult> {
+  const slot = HOME_TEXT_SLOTS.find((s) => s.key === key);
+  if (!slot) return { ok: false, error: "Emplacement inconnu" };
+
+  const text = value.trim();
+  if (text.length > slot.maxLength) {
+    return { ok: false, error: `Texte trop long (${slot.maxLength} caractères max)` };
+  }
+
+  const { supabase, user } = await requireUser();
+  if (!user) return { ok: false, error: "Non authentifié" };
+
+  const { error } = text
+    ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase.from("site_settings") as any).upsert({ key, value: text })
+    : await supabase.from("site_settings").delete().eq("key", key);
+
+  if (error) return { ok: false, error: error.message };
   revalidateHome();
   return { ok: true };
 }

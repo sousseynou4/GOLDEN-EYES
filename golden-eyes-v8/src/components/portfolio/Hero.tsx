@@ -1,132 +1,151 @@
 "use client";
 
+import { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { ArrowDown } from "lucide-react";
 import { ROUTES } from "@/lib/constants";
 import { DEMO_HERO } from "@/lib/demo-content";
+import { gsap, useGsap } from "@/lib/gsap";
+import { GoldParticles } from "@/components/effects/GoldParticles";
 
 interface HeroProps {
-  /** URL de l'image de fond. Défaut : image de démo Unsplash. */
+  /** URL de l'image de fond (réglable dans Dashboard → Page d'accueil). */
   image?: string;
-  /** Sources vidéo optionnelles (priorité sur l'image si fournies). */
-  videoWebm?: string;
-  videoMp4?: string;
-  poster?: string;
 }
 
+const TITLE_LINES: { text: string; gold?: boolean }[][] = [
+  [{ text: "Capturer" }, { text: "la" }, { text: "lumière," }],
+  [{ text: "révéler", gold: true }, { text: "l'instant." }],
+];
+
 /**
- * Hero éditorial plein écran.
- * - Une vraie photo (ou vidéo) en fond, traitée avec un voile sombre
- *   en dégradé pour la lisibilité du texte.
- * - Titrage magazine ÉNORME en serif, mise en page asymétrique.
- * - Apparition orchestrée en cascade.
+ * Hero luxe plein écran.
+ * - Photo de fond + voile noir chaud + poussière d'or en 3D (Three.js)
+ * - Titre révélé mot par mot (GSAP), « révéler » en or métallique
+ * - Parallaxe au défilement : la photo glisse, le texte s'efface
+ * - Le contenu reste dans le flux (min-h + padding) : il ne peut jamais
+ *   être rogné sous le header, même sur un écran d'ordinateur bas.
  */
-export function Hero({ image = DEMO_HERO, videoWebm, videoMp4, poster }: HeroProps) {
-  const hasVideo = Boolean(videoWebm || videoMp4);
+export function Hero({ image = DEMO_HERO }: HeroProps) {
+  const root = useRef<HTMLElement>(null);
+
+  useGsap(({ reduced, q }) => {
+    if (reduced) {
+      gsap.set(q("[data-hero]"), { opacity: 1, y: 0 });
+      gsap.set(q("[data-word]"), { yPercent: 0, y: 0 });
+      gsap.set(q("[data-rule]"), { scaleX: 1 });
+      return;
+    }
+
+    gsap
+      .timeline({ defaults: { ease: "expo.out" } })
+      .fromTo(q("[data-hero-img]"), { scale: 1.2 }, { scale: 1.05, duration: 2.8, ease: "power3.out" }, 0)
+      .fromTo(q("[data-rule]"), { scaleX: 0 }, { scaleX: 1, duration: 1.4 }, 0.2)
+      .fromTo(q("[data-hero='eyebrow']"), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 1 }, 0.3)
+      .fromTo(q("[data-word]"), { yPercent: 115, y: 0 }, { yPercent: 0, duration: 1.4, stagger: 0.09 }, 0.45)
+      .fromTo(q("[data-hero='cta']"), { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 1.1, stagger: 0.12 }, 1.05)
+      .fromTo(q("[data-hero='scroll']"), { opacity: 0 }, { opacity: 1, duration: 1 }, 1.6);
+
+    // Parallaxe au défilement
+    const scroll = { trigger: root.current, start: "top top", end: "bottom top", scrub: true };
+    gsap.to(q("[data-hero-img]"), { yPercent: 14, ease: "none", scrollTrigger: scroll });
+    gsap.to(q("[data-hero-content]"), { yPercent: -12, opacity: 0.15, ease: "none", scrollTrigger: scroll });
+  }, root);
 
   return (
-    <section className="relative grain h-screen min-h-[640px] w-full overflow-hidden bg-espresso">
-      {/* ━━━━━━ Média de fond ━━━━━━ */}
+    <section ref={root} className="relative grain w-full overflow-hidden bg-noir">
+      {/* Sans JavaScript, le contenu reste visible */}
+      <noscript>
+        <style>{`[data-hero]{opacity:1!important;transform:none!important}`}</style>
+      </noscript>
+
+      {/* ━━━━━━ Photo de fond ━━━━━━ */}
       <div className="absolute inset-0">
-        {hasVideo ? (
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            poster={poster}
-            preload="metadata"
-            className="h-full w-full animate-slow-zoom object-cover"
-            aria-hidden="true"
-          >
-            {videoWebm && <source src={videoWebm} type="video/webm" />}
-            {videoMp4 && <source src={videoMp4} type="video/mp4" />}
-          </video>
-        ) : (
+        <div data-hero-img className="absolute inset-0 will-change-transform">
           <Image
             src={image}
             alt="Photographie d'auteur Golden Eyes"
             fill
             priority
             sizes="100vw"
-            className="animate-slow-zoom object-cover"
+            className="object-cover"
           />
-        )}
-
-        {/* Voile dégradé : sombre en bas (texte) → clair en haut */}
+        </div>
+        {/* Voile noir chaud : lisibilité du texte + ambiance luxe */}
+        <div className="absolute inset-0 bg-gradient-to-t from-noir via-noir/40 to-noir/60" aria-hidden="true" />
+        <div className="absolute inset-0 bg-gradient-to-r from-noir/80 via-noir/20 to-transparent" aria-hidden="true" />
         <div
-          className="absolute inset-0 bg-gradient-to-t from-espresso via-espresso/30 to-espresso/50"
-          aria-hidden="true"
-        />
-        <div
-          className="absolute inset-0 bg-gradient-to-r from-espresso/60 to-transparent"
+          className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_30%,rgba(207,160,67,0.18),transparent_60%)]"
           aria-hidden="true"
         />
       </div>
+
+      {/* ━━━━━━ Poussière d'or 3D ━━━━━━ */}
+      <GoldParticles className="z-[2]" />
 
       {/* ━━━━━━ Contenu ━━━━━━ */}
-      <div className="relative z-10 mx-auto flex h-full max-w-7xl flex-col justify-end px-6 pb-24">
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="eyebrow !text-gold-300 mb-6"
-        >
-          Studio photographique · Depuis 2015
-        </motion.p>
+      <div
+        data-hero-content
+        className="relative z-10 mx-auto flex min-h-[100svh] max-w-7xl flex-col justify-end px-6 pb-20 pt-32 md:pb-24"
+      >
+        <div data-hero="eyebrow" className="mb-6 flex items-center gap-4 opacity-0 md:mb-8">
+          <span data-rule className="gold-rule block w-12 origin-left md:w-20" />
+          <span className="text-xs font-medium uppercase tracking-editorial text-gold-200">
+            Studio photographique · Nantes
+          </span>
+        </div>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-          className="max-w-4xl font-serif text-display-xl font-light text-paper"
-        >
-          Capturer la lumière,
-          <br />
-          <span className="italic text-gold-300">révéler</span> l&apos;instant.
-        </motion.h1>
+        <h1 className="max-w-6xl font-serif text-display-xl font-light text-paper">
+          {TITLE_LINES.map((line, li) => (
+            <span key={li} className="block">
+              {line.map((word, wi) => (
+                <span
+                  key={wi}
+                  className="-mb-[0.12em] mr-[0.22em] inline-block overflow-hidden pb-[0.12em] pr-[0.04em] pt-[0.06em] align-bottom"
+                >
+                  <span
+                    data-word
+                    data-hero
+                    className={`inline-block translate-y-[115%] ${word.gold ? "text-gold italic" : ""}`}
+                  >
+                    {word.text}
+                  </span>
+                </span>
+              ))}
+            </span>
+          ))}
+        </h1>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
-          className="mt-10 flex flex-col items-start gap-6 md:flex-row md:items-center"
-        >
-          <div className="flex flex-wrap gap-4">
-            <Link href={ROUTES.portfolio} className="btn-primary-dark">
-              Voir le portfolio
-            </Link>
-            <Link href={ROUTES.contact} className="btn-ghost-dark">
+        <div className="mt-10 flex flex-col items-start gap-8 md:mt-12 md:flex-row md:items-center md:gap-12">
+          <div data-hero="cta" className="flex flex-wrap gap-4 opacity-0">
+            <Link href={ROUTES.contact} className="btn-gold">
               Réserver une séance
             </Link>
+            <Link href={ROUTES.portfolio} className="btn-gold-ghost">
+              Voir le portfolio
+            </Link>
           </div>
-          <p className="max-w-xs text-sm leading-relaxed text-paper/70">
-            Portraits, mariages et reportages d&apos;auteur — partout où il y a
-            une histoire à raconter.
+          <p data-hero="cta" className="max-w-sm text-sm leading-relaxed text-paper/75 opacity-0">
+            Mariages, portraits, événements et films — des images d&apos;exception
+            pour les moments qui comptent.
           </p>
-        </motion.div>
+        </div>
       </div>
 
-      {/* Scroll indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.4, duration: 1 }}
-        className="absolute bottom-8 right-8 z-10 hidden md:block"
+      {/* Indicateur de défilement */}
+      <div
+        data-hero="scroll"
+        className="absolute bottom-8 right-8 z-10 hidden flex-col items-center gap-3 text-gold-200/80 opacity-0 md:flex"
       >
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          className="flex flex-col items-center gap-2 text-paper/60"
-        >
-          <span className="text-[10px] uppercase tracking-editorial [writing-mode:vertical-rl]">
-            Défiler
-          </span>
-          <ArrowDown className="h-4 w-4" />
-        </motion.div>
-      </motion.div>
+        <span className="text-[10px] uppercase tracking-editorial [writing-mode:vertical-rl]">
+          Défiler
+        </span>
+        <span className="relative h-12 w-px overflow-hidden bg-gold-200/20">
+          <span className="absolute inset-x-0 top-0 h-1/2 animate-[scrollCue_2.2s_ease-in-out_infinite] bg-gold-200" />
+        </span>
+        <ArrowDown className="h-3.5 w-3.5" />
+      </div>
     </section>
   );
 }

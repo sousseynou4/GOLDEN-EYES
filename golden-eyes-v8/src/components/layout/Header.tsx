@@ -17,8 +17,8 @@ const NAV_LINKS = [
 
 /**
  * Header éditorial.
- * - Sur la home : transparent au sommet (texte clair sur le hero sombre),
- *   puis fond crème + ombre au scroll.
+ * - Sur la home (direction luxe) : transparent au sommet, puis noir
+ *   translucide au scroll ; logo et bouton en or.
  * - Sur les autres pages : fond crème dès le départ.
  */
 export function Header() {
@@ -36,7 +36,8 @@ export function Header() {
 
   useEffect(() => setOpen(false), [pathname]);
 
-  // Sur la home en haut de page : header transparent, texte clair
+  // Sur la home : header sombre (transparent en haut de page)
+  const dark = isHome;
   const transparent = isHome && !scrolled;
 
   return (
@@ -45,7 +46,9 @@ export function Header() {
         "fixed inset-x-0 top-0 z-50 transition-all duration-500",
         transparent
           ? "bg-transparent py-6"
-          : "border-b border-line bg-paper/90 py-4 backdrop-blur-md",
+          : dark
+            ? "border-b border-gold-300/15 bg-noir/85 py-4 backdrop-blur-md"
+            : "border-b border-line bg-paper/90 py-4 backdrop-blur-md",
       )}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6">
@@ -53,7 +56,7 @@ export function Header() {
           <span
             className={cn(
               "font-serif text-2xl transition-colors",
-              transparent ? "text-paper" : "text-espresso",
+              dark ? "text-gold" : "text-espresso",
             )}
           >
             Golden Eyes
@@ -61,7 +64,7 @@ export function Header() {
           <span
             className={cn(
               "text-[9px] uppercase tracking-editorial transition-colors",
-              transparent ? "text-paper/70" : "text-gold-600",
+              dark ? "text-gold-200/70" : "text-gold-600",
             )}
           >
             Studio Photographique
@@ -81,18 +84,23 @@ export function Header() {
                 href={link.href}
                 className={cn(
                   "relative text-xs uppercase tracking-wider transition-colors",
-                  transparent
-                    ? "text-paper/80 hover:text-paper"
+                  dark
+                    ? isActive
+                      ? "text-gold-200"
+                      : "text-paper/75 hover:text-gold-200"
                     : isActive
                       ? "text-gold-600"
                       : "text-ink-muted hover:text-espresso",
                 )}
               >
                 {link.label}
-                {isActive && !transparent && (
+                {isActive && (
                   <motion.span
                     layoutId="nav-underline"
-                    className="absolute -bottom-1.5 left-0 h-px w-full bg-gold-500"
+                    className={cn(
+                      "absolute -bottom-1.5 left-0 h-px w-full",
+                      dark ? "bg-gold-300" : "bg-gold-500",
+                    )}
                   />
                 )}
               </Link>
@@ -101,9 +109,9 @@ export function Header() {
           <Link
             href={ROUTES.contact}
             className={cn(
-              "rounded-full px-5 py-2 text-xs uppercase tracking-wider transition-all",
-              transparent
-                ? "bg-paper text-espresso hover:bg-gold-300"
+              "rounded-full px-5 py-2 text-xs uppercase tracking-wider transition-all duration-500",
+              dark
+                ? "bg-gradient-to-r from-gold-500 via-gold-200 to-gold-500 bg-[length:200%_auto] text-noir hover:bg-right"
                 : "bg-espresso text-paper hover:bg-gold-500 hover:text-espresso",
             )}
           >
@@ -117,7 +125,7 @@ export function Header() {
           aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
           className={cn(
             "rounded-md p-2 transition md:hidden",
-            transparent ? "text-paper" : "text-espresso",
+            dark ? "text-gold-100" : "text-espresso",
           )}
         >
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}

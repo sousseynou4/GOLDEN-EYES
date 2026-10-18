@@ -77,6 +77,60 @@
     @apply mb-1.5 block text-xs font-medium uppercase tracking-wider text-ink-muted;
   }
 
+  /* ── Luxe : or métallique ── */
+  /* Texte or métallique avec reflet qui glisse lentement */
+  .text-gold {
+    background-image: linear-gradient(
+      110deg,
+      #8a6420 0%,
+      #e9c97a 20%,
+      #fff1c4 30%,
+      #c9963a 45%,
+      #f3d98b 60%,
+      #a27424 80%,
+      #e9c97a 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    @apply animate-shimmer;
+  }
+  /* Bouton or plein, avec éclat qui balaie au survol */
+  .btn-gold {
+    @apply relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full
+           px-8 py-4 text-sm font-medium uppercase tracking-wider text-noir
+           transition-all duration-500;
+    background-image: linear-gradient(110deg, #b8862b, #f3d98b 45%, #c9963a 70%, #8a6420);
+    background-size: 160% auto;
+    box-shadow: 0 10px 40px -12px rgba(207, 160, 67, 0.55);
+  }
+  .btn-gold::after {
+    content: "";
+    @apply pointer-events-none absolute inset-y-0 -left-1/2 w-1/3 -skew-x-12 bg-white/50 opacity-0 blur-md;
+    transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s;
+  }
+  .btn-gold:hover {
+    background-position: right center;
+    box-shadow: 0 14px 50px -10px rgba(207, 160, 67, 0.75);
+  }
+  .btn-gold:hover::after {
+    @apply opacity-100;
+    transform: translateX(450%) skewX(-12deg);
+  }
+  /* Bouton contour or, sur fond sombre */
+  .btn-gold-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-gold-300/50
+           px-8 py-4 text-sm font-medium uppercase tracking-wider text-gold-100
+           transition-all duration-500
+           hover:border-gold-300 hover:bg-gold-300/10 hover:text-gold-50;
+  }
+  /* Filet or horizontal qui s'estompe aux extrémités */
+  .gold-rule {
+    @apply h-px w-full;
+    background-image: linear-gradient(90deg, transparent, #cfa043 20%, #f3d98b 50%, #cfa043 80%, transparent);
+  }
+
   /* ── Eyebrow (sur-titre tagline) ── */
   .eyebrow {
     @apply inline-flex items-center gap-2 text-xs font-medium uppercase tracking-editorial text-gold-600;
@@ -105,5 +159,14 @@
   /* Filet décoratif vertical */
   .text-balance {
     text-wrap: balance;
+  }
+}
+
+/* Accessibilité : pas d'animation décorative si l'utilisateur l'a demandé */
+@media (prefers-reduced-motion: reduce) {
+  .text-gold,
+  .animate-slow-zoom,
+  .animate-marquee {
+    animation: none !important;
   }
 }

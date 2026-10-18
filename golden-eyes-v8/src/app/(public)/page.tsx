@@ -1,37 +1,39 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Hero } from "@/components/portfolio/Hero";
+import { StudioIntro } from "@/components/portfolio/StudioIntro";
 import { AboutPreview } from "@/components/portfolio/AboutPreview";
 import { PortfolioGrid } from "@/components/portfolio/PortfolioGrid";
 import { Marquee } from "@/components/portfolio/Marquee";
+import { FinalCta } from "@/components/portfolio/FinalCta";
 import { Container } from "@/components/ui/Container";
-import { SectionTitle } from "@/components/ui/SectionTitle";
 import { createClient } from "@/lib/supabase/server";
 import { ROUTES } from "@/lib/constants";
 import { DEMO_GALLERY } from "@/lib/demo-content";
-import { getHomeImages } from "@/lib/site-settings";
+import { getHomeContent } from "@/lib/site-settings";
 import type { Media } from "@/types";
 
 export const revalidate = 60;
 
 /**
- * Page d'accueil éditoriale.
- *   1. Hero photo plein écran
- *   2. Section signature (portrait + texte + chiffres)
- *   3. Aperçu portfolio (mosaïque) — fond clair
- *   4. Bandeau marquee — fond sombre contrasté
- *   5. CTA réservation
+ * Page d'accueil — direction « luxe or ».
+ *   1. Hero photo plein écran + poussière d'or 3D (Three.js)
+ *   2. Le studio : phrase signature + texte de présentation + prestations
+ *   3. L'approche : photo en rideau + engagements
+ *   4. Aperçu portfolio (mosaïque) — fond clair
+ *   5. Bandeau défilant — fond noir
+ *   6. Appel final à la réservation
  *
  * Les médias viennent de Supabase ; si la table est vide, on
  * retombe sur les images de démonstration pour que le site vive.
  * Les photos mises en avant (★) passent en premier, complétées
- * par les plus récentes. Le hero et le portrait se règlent dans
- * Dashboard → Page d'accueil (table `site_settings`).
+ * par les plus récentes. Le hero, le portrait et le texte de
+ * présentation se règlent dans Dashboard → Page d'accueil.
  */
 export default async function HomePage() {
   const supabase = await createClient();
 
-  const [{ data: dbMedia }, homeImages] = await Promise.all([
+  const [{ data: dbMedia }, content] = await Promise.all([
     supabase
       .from("media")
       .select("id, url, title, category, type")
@@ -41,7 +43,7 @@ export default async function HomePage() {
       .order("created_at", { ascending: false })
       .limit(9)
       .returns<Pick<Media, "id" | "url" | "title" | "category" | "type">[]>(),
-    getHomeImages(supabase),
+    getHomeContent(supabase),
   ]);
 
   // Fallback démo si la base est vide
@@ -65,18 +67,22 @@ export default async function HomePage() {
 
   return (
     <>
-      <Hero image={homeImages.home_hero_image} />
+      <Hero image={content.images.home_hero_image} />
 
-      <AboutPreview image={homeImages.home_about_image} />
+      <StudioIntro description={content.texts.home_description} />
+
+      <AboutPreview image={content.images.home_about_image} />
 
       {/* Aperçu portfolio — fond clair */}
       <section className="bg-paper py-24 md:py-32">
         <Container>
           <div className="flex items-end justify-between gap-6">
-            <SectionTitle
-              eyebrow="Travaux récents"
-              title="Une sélection d'instants."
-            />
+            <div className="max-w-2xl">
+              <p className="eyebrow mb-5">Travaux récents</p>
+              <h2 className="font-serif text-display-md text-espresso text-balance">
+                Une sélection d&apos;<span className="italic text-gold-600">instants</span>.
+              </h2>
+            </div>
             <Link
               href={ROUTES.portfolio}
               className="group hidden shrink-0 items-center gap-2 text-sm uppercase tracking-wider text-espresso transition hover:text-gold-600 md:inline-flex"
@@ -98,39 +104,21 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      {/* Marquee — fond sombre */}
-      <section className="bg-espresso py-20">
+      {/* Bandeau défilant — fond noir */}
+      <section className="relative bg-noir py-24">
+        <div className="gold-rule absolute inset-x-0 top-0 opacity-30" aria-hidden="true" />
         <Container>
-          <SectionTitle
-            eyebrow="En mouvement"
-            title="Un avant-goût."
-            align="center"
-            dark
-            className="mb-14"
-          />
+          <div className="mx-auto mb-14 max-w-2xl text-center">
+            <p className="eyebrow mb-5 justify-center !text-gold-300">En mouvement</p>
+            <h2 className="font-serif text-display-md font-light text-paper">
+              Un <span className="text-gold italic">avant-goût</span>.
+            </h2>
+          </div>
         </Container>
         <Marquee images={marqueeImages} />
       </section>
 
-      {/* CTA final — fond clair */}
-      <section className="bg-paper py-28 md:py-36">
-        <Container size="md">
-          <div className="text-center">
-            <p className="eyebrow mb-6 justify-center">Prêt·e à commencer ?</p>
-            <h2 className="font-serif text-display-lg text-espresso text-balance">
-              Racontez-moi votre histoire.
-            </h2>
-            <p className="mx-auto mt-6 max-w-xl text-lg text-ink-muted">
-              Chaque projet commence par une conversation. Parlons de votre
-              vision, du lieu, du moment juste à capturer.
-            </p>
-            <Link href={ROUTES.contact} className="btn-primary mt-10 inline-flex">
-              Réserver une séance
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </Container>
-      </section>
+      <FinalCta />
     </>
   );
 }

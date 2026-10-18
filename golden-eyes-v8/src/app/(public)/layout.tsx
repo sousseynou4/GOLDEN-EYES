@@ -1,5 +1,6 @@
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { GoldCursor } from "@/components/effects/GoldCursor";
 
 /**
  * Layout commun à toutes les pages publiques :
@@ -15,6 +16,7 @@ export default function PublicLayout({
       <Header />
       <main className="relative">{children}</main>
       <Footer />
+      <GoldCursor />
     </>
   );
 }
