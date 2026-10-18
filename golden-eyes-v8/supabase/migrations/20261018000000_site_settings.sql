@@ -17,6 +17,18 @@ create table if not exists public.site_settings (
   updated_at  timestamptz default now() not null
 );
 
+-- Fonction de mise à jour de `updated_at` (recréée ici au cas où elle
+-- aurait disparu, par ex. après un « Reset Public Schema »)
+create or replace function public.handle_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
 drop trigger if exists set_updated_at_site_settings on public.site_settings;
 create trigger set_updated_at_site_settings
   before update on public.site_settings
