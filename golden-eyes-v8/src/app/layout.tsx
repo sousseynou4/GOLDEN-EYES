@@ -1,29 +1,32 @@
 import type { Metadata } from "next";
-import { Fraunces, Jost } from "next/font/google";
+import localFont from "next/font/local";
 import { Toaster } from "sonner";
 import { SITE_CONFIG } from "@/lib/constants";
 import "./globals.css";
 
 // ─────────────────────────────────────────────
-// Polices éditoriales
+// Polices éditoriales (hébergées dans le site, licence OFL —
+// voir src/app/fonts/ : le build ne dépend plus de Google Fonts)
 //   Fraunces : serif "old-style" contrastée, parfaite pour un
 //              titrage magazine élégant et chaleureux.
 //   Jost     : sans géométrique fin, idéal pour le corps de texte
 //              et les labels en majuscules espacées.
 // ─────────────────────────────────────────────
-const fontSerif = Fraunces({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  style: ["normal", "italic"],
+const fontSerif = localFont({
+  src: [
+    { path: "./fonts/fraunces-latin-wght-normal.woff2", weight: "100 900", style: "normal" },
+    { path: "./fonts/fraunces-latin-wght-italic.woff2", weight: "100 900", style: "italic" },
+  ],
   variable: "--font-serif",
   display: "swap",
+  fallback: ["Georgia", "serif"],
 });
 
-const fontSans = Jost({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
+const fontSans = localFont({
+  src: [{ path: "./fonts/jost-latin-wght-normal.woff2", weight: "100 900", style: "normal" }],
   variable: "--font-sans",
   display: "swap",
+  fallback: ["system-ui", "sans-serif"],
 });
 
 export const metadata: Metadata = {
